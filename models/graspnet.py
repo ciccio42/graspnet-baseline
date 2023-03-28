@@ -5,7 +5,7 @@
 import os
 import sys
 import numpy as np
-import torch
+import torch 
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -21,6 +21,21 @@ from loss import get_loss
 from loss_utils import GRASP_MAX_WIDTH, GRASP_MAX_TOLERANCE
 from label_generation import process_grasp_labels, match_grasp_view_and_label, batch_viewpoint_params_to_matrix
 
+# READ YAML FILE
+import yaml
+# load gripper configuration parameters
+with  open(os.path.dirname(os.path.abspath(__file__))+"/gripper_configuration.yaml", "r") as stream:
+    try:
+        gripper_configuration = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(exc)
+        sys.exit()
+
+FINGER_HEIGHT = gripper_configuration['finger_height']
+FINGER_LENGHT = gripper_configuration['finger_lenght']
+FINGER_WIDTH = gripper_configuration['finger_width']
+GRIPPER_MAX_OPENING = gripper_configuration['gripper_max_opening']
+DEPTH_BASE = gripper_configuration['depth_base']
 
 class GraspNetStage1(nn.Module):
     def __init__(self, input_feature_dim=0, num_view=300):
@@ -85,7 +100,7 @@ def pred_decode(end_points):
         approaching = -end_points['grasp_top_view_xyz'][i].float()
         grasp_angle_class_score = end_points['grasp_angle_cls_pred'][i]
         grasp_width = 1.2 * end_points['grasp_width_pred'][i]
-        grasp_width = torch.clamp(grasp_width, min=0, max=GRASP_MAX_WIDTH)
+        grasp_width = torch.clamp(grasp_width, min=0, max=GRIPPER_MAX_OPENING)
         grasp_tolerance = end_points['grasp_tolerance_pred'][i]
 
         ## slice preds by angle
@@ -101,7 +116,11 @@ def pred_decode(end_points):
         ## slice preds by score/depth
         # grasp depth
         grasp_depth_class = torch.argmax(grasp_score, 1, keepdims=True)
-        grasp_depth = (grasp_depth_class.float()+1) * 0.01
+        grasp_depth = (grasp_depth_class.float()+1) * 0.01 
+        #grasp_depth = (grasp_depth_class.float()+1) * 0.01 
+        #grasp_depth = (grasp_depth_class.float()) * 0.01
+        #grasp_ones = torch.ones(grasp_depth.size()).cuda() * 0.01
+        #grasp_depth = torch.where(grasp_depth_class == 0, grasp_ones, grasp_depth)
         # grasp score & angle & width & tolerance
         grasp_score = torch.gather(grasp_score, 1, grasp_depth_class)
         grasp_angle = torch.gather(grasp_angle, 1, grasp_depth_class)
@@ -128,7 +147,7 @@ def pred_decode(end_points):
         rotation_matrix = rotation_matrix.view(Ns, 9)
 
         # merge preds
-        grasp_height = 0.02 * torch.ones_like(grasp_score)
+        grasp_height = FINGER_HEIGHT * torch.ones_like(grasp_score)
         obj_ids = -1 * torch.ones_like(grasp_score)
         grasp_preds.append(torch.cat([grasp_score, grasp_width, grasp_height, grasp_depth, rotation_matrix, grasp_center, obj_ids], axis=-1))
     return grasp_preds
