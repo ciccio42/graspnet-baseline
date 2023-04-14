@@ -1,2 +1,2 @@
-CUDA_VISIBLE_DEVICES=0 python test.py --dump_dir logs/dump_rs --checkpoint_path logs/log_rs/checkpoint.tar --camera realsense --dataset_root /data/Benchmark/graspnet
+CUDA_VISIBLE_DEVICES=0 python3.6 test.py --dump_dir logs/dump_rs_test_4 --checkpoint_path logs/log_rs/checkpoint-rs.tar --camera realsense --num_point 20000 --num_view 300 --collision_thresh 0.01 --voxel_size 0.001 --dataset_root  "/media/ciccio/Extreme SSD/graspnet" --num_workers 1 --split test_seen --inference False --evaluation True
 # CUDA_VISIBLE_DEVICES=0 python test.py --dump_dir logs/dump_kn --checkpoint_path logs/log_kn/checkpoint.tar --camera kinect --dataset_root /data/Benchmark/graspnet

@@ -52,9 +52,14 @@ class ApproachNet(nn.Module):
                 end_points: [dict]
         """
         B, num_seed, _ = seed_xyz.size()
+        print("---- Approach Network ----")
+        print("Input: ", seed_features.size())
         features = F.relu(self.bn1(self.conv1(seed_features)), inplace=True)
+        print("Output primo layer: ", features.size())
         features = F.relu(self.bn2(self.conv2(features)), inplace=True)
+        print("Output secondo layer: ", features.size())
         features = self.conv3(features)
+        print("Output terzo layer: ",features.size())
         objectness_score = features[:, :2, :] # (B, 2, num_seed)
         view_score = features[:, 2:2+self.num_view, :].transpose(1,2).contiguous() # (B, num_seed, num_view)
         end_points['objectness_score'] = objectness_score
@@ -130,7 +135,8 @@ class CloudCrop(nn.Module):
             )) # (batch_size, feature_dim, num_seed, nsample)
         grouped_features = torch.stack(grouped_features, dim=3) # (batch_size, feature_dim, num_seed, num_depth, nsample)
         grouped_features = grouped_features.view(B, -1, num_seed*num_depth, self.nsample) # (batch_size, feature_dim, num_seed*num_depth, nsample)
-
+        print("\n---- Grouping and Align ----")
+        print("Pre mlps: ", grouped_features.size())
         vp_features = self.mlps(
             grouped_features
         ) # (batch_size, mlps[-1], num_seed*num_depth, nsample)
@@ -138,6 +144,8 @@ class CloudCrop(nn.Module):
             vp_features, kernel_size=[1, vp_features.size(3)]
         ) # (batch_size, mlps[-1], num_seed*num_depth, 1)
         vp_features = vp_features.view(B, -1, num_seed, num_depth)
+        print("Post mlps: ",vp_features.size())
+
         return vp_features
 
         
@@ -179,10 +187,15 @@ class OperationNet(nn.Module):
         """
         B, _, num_seed, num_depth = vp_features.size()
         vp_features = vp_features.view(B, -1, num_seed*num_depth)
+        print("\n---- Approach Network ----")
+        print("Input primo layer: ", vp_features.size())
         vp_features = F.relu(self.bn1(self.conv1(vp_features)), inplace=True)
+        print("Output primo layer: ", vp_features.size())
         vp_features = F.relu(self.bn2(self.conv2(vp_features)), inplace=True)
+        print("Output secondo layer: ", vp_features.size())
         vp_features = self.conv3(vp_features)
         vp_features = vp_features.view(B, -1, num_seed, num_depth)
+        print("Output terzo layer: ", vp_features.size())
 
         # split prediction
         end_points['grasp_score_pred'] = vp_features[:, 0:self.num_angle]
@@ -222,11 +235,16 @@ class ToleranceNet(nn.Module):
             Output:
                 end_points: [dict]
         """
+        print("\n---- Tolerance Net ----")
         B, _, num_seed, num_depth = vp_features.size()
         vp_features = vp_features.view(B, -1, num_seed*num_depth)
+        print("Input primo layer: ", vp_features.size())
         vp_features = F.relu(self.bn1(self.conv1(vp_features)), inplace=True)
+        print("Output primo layer: ", vp_features.size())
         vp_features = F.relu(self.bn2(self.conv2(vp_features)), inplace=True)
+        print("Output secondo layer: ", vp_features.size())
         vp_features = self.conv3(vp_features)
         vp_features = vp_features.view(B, -1, num_seed, num_depth)
+        print("Output terzo layer: ", vp_features.size())
         end_points['grasp_tolerance_pred'] = vp_features
         return end_points

@@ -7,6 +7,8 @@ import sys
 import numpy as np
 import open3d as o3d
 
+from graspnet import FINGER_LENGHT, FINGER_HEIGHT, FINGER_WIDTH, DEPTH_BASE
+
 class ModelFreeCollisionDetector():
     """ Collision detection in scenes without object labels. Current finger width and length are fixed.
 
@@ -26,8 +28,8 @@ class ModelFreeCollisionDetector():
                                             return_empty_grasp=True, empty_thresh=0.01, return_ious=True)
     """
     def __init__(self, scene_points, voxel_size=0.005):
-        self.finger_width = 0.01
-        self.finger_length = 0.06
+        self.finger_width = FINGER_WIDTH
+        self.finger_length = FINGER_LENGHT
         self.voxel_size = voxel_size
         scene_cloud = o3d.geometry.PointCloud()
         scene_cloud.points = o3d.utility.Vector3dVector(scene_points)
@@ -74,7 +76,6 @@ class ModelFreeCollisionDetector():
         widths = grasp_group.widths[:,np.newaxis]
         targets = self.scene_points[np.newaxis,:,:] - T[:,np.newaxis,:]
         targets = np.matmul(targets, R)
-
         ## collision detection
         # height mask
         mask1 = ((targets[:,:,2] > -heights/2) & (targets[:,:,2] < heights/2))
