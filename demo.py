@@ -2,12 +2,6 @@
     Author: chenxi-wang
 """
 import sys
-try:
-    sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-    sys.path.remove("/usr/lib/python2.7/dist-packages")
-except Exception as e:
-    print(e)
-
 import os
 import numpy as np
 import open3d as o3d
@@ -130,8 +124,13 @@ def demo(data_dir):
     print(f"Len gg: {len(gg)} -- Cloud points shape {np.array(cloud.points).shape}")
     if cfgs.collision_thresh > 0:
         gg = collision_detection(gg, np.array(cloud.points))
-    #vis_grasps(gg, cloud)
+    vis_grasps(gg, cloud)
 
 if __name__=='__main__':
+    import debugpy
+    # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+    debugpy.listen(("0.0.0.0", 5678))
+    print("Waiting for debugger attach")
+    debugpy.wait_for_client()
     data_dir = 'doc/example_data'
     demo(data_dir)
