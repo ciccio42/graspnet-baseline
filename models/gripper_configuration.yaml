@@ -1,6 +1,6 @@
 # Gripper Configuration # Default - Custom Gripper 1 - Custom Gripper 3
-finger_height: 0.015 # 0.02 # 0.02 # 0.015 [m] 
-finger_lenght: 0.08 # 0.06 # 0.03 # 0.08 [m]
-finger_width: 0.015 # 0.01 # 0.01 # 0.015 # [m]
+finger_height: 0.02 # 0.02 # 0.02 # 0.015 [m] 
+finger_lenght: 0.14 # 0.06 # 0.03 # 0.08 [m]
+finger_width: 0.01 # 0.01 # 0.01 # 0.015 # [m]
 gripper_max_opening: 0.08 #0.10 #0.027 # 0.08[m]
-depth_base: 0.03 #0.02 # - # 0.03
+depth_base: 0.04 #0.02 # - # 0.03
